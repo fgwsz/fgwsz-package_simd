@@ -2,7 +2,6 @@
 #include <memory>       // std::unique_ptr, std::make_unique
 #include <filesystem>   // std::filesystem
 
-#include "constants.hpp"
 #include "package_error.hpp" // PackageError
 
 #include "io_ireader.hpp"
