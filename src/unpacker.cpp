@@ -55,8 +55,8 @@ void Unpacker::run(
             out_root/ path_utils::from_utf8(header.path);
         std::filesystem::create_directories(target.parent_path());
 
-        io::FileWriter out(target);
-        if (!out.is_open()) {
+        auto writer = io::create_writer(target, header.content_len, true);
+        if (!writer) {
             throw PackageError(
                 "Cannot create file: " + path_utils::to_utf8(target)
             );
@@ -70,7 +70,7 @@ void Unpacker::run(
                 throw PackageError("Incomplete content data");
             }
             simd::xor_block(buf.data(), buf.data(), to_read, header.key);
-            if (!out.write(buf.data(), to_read)) {
+            if (!writer->write(buf.data(), to_read)) {
                 throw PackageError(
                     "Write to file failed: " + path_utils::to_utf8(target)
                 );

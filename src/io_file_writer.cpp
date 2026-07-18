@@ -125,7 +125,7 @@ void FileWriter::open_file(const std::filesystem::path& path) {
         0,               // 独占
         nullptr,
         CREATE_ALWAYS,   // 总是创建新文件
-        FILE_ATTRIBUTE_NORMAL,
+        FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN,
         nullptr
     );
     if (h == INVALID_HANDLE_VALUE) {
