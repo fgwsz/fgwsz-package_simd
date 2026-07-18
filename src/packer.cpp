@@ -123,7 +123,8 @@ void Packer::write_content(
     std::vector<uint8_t> buf(BUF_SIZE);
     size_t remaining = file_size;
     while (remaining > 0) {
-        size_t to_read = std::min(remaining, BUF_SIZE);
+        size_t to_read = (std::min)(remaining, BUF_SIZE);
+            // (std::min)的涵义:避免windows min宏和std::min函数冲突
         if (!reader->read(buf.data(), to_read)) {
             throw PackageError("Read input file failed");
         }

@@ -30,7 +30,8 @@ bool MmapWriter::create(const std::filesystem::path& path, size_t size) {
 #ifdef _WIN32
     HANDLE hFile = CreateFileW(
         path.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr,
-        CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr
+        CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN,
+        nullptr
     );
     if (hFile == INVALID_HANDLE_VALUE) {
         return false;

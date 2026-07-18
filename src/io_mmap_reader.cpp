@@ -32,7 +32,8 @@ bool MmapReader::open(const std::filesystem::path& path) {
 #ifdef _WIN32
     HANDLE hFile = CreateFileW(
         path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr,
-        OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr
+        OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL| FILE_FLAG_SEQUENTIAL_SCAN,
+        nullptr
     );
     if (hFile == INVALID_HANDLE_VALUE) {
         return false;

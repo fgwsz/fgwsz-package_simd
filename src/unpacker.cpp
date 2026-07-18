@@ -64,7 +64,8 @@ void Unpacker::run(
 
         uint64_t remaining = header.content_len;
         while (remaining > 0) {
-            size_t to_read = std::min(remaining, BUF_SIZE);
+            size_t to_read = (std::min)(remaining, BUF_SIZE);
+                // (std::min)的涵义:避免windows min宏和std::min函数冲突
             if (!reader->read(buf.data(), to_read)) {
                 throw PackageError("Incomplete content data");
             }

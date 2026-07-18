@@ -21,8 +21,9 @@ namespace detail{
 
 // ---------- 平台相关常量 ----------
 #ifdef _WIN32
-static constexpr auto INVALID_NATIVE_HANDLE =
+static const/*expr*/ auto INVALID_NATIVE_HANDLE =
     reinterpret_cast<void*>(INVALID_HANDLE_VALUE);
+    // windows不支持在constexpr表达式中使用强制类型转换reinterpret_cast
 #else
 static constexpr int INVALID_NATIVE_HANDLE = -1;
 #endif
