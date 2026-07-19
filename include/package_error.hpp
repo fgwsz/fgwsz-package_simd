@@ -1,6 +1,6 @@
 #pragma once
 
-#include<exception>
+#include <exception>
 #include <string>
 #include <string_view>
 #include <source_location>
