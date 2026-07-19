@@ -4,11 +4,11 @@
 #include <filesystem>   // std::filesystem
 
 #ifdef _WIN32
-#include <windows.h>    // Windows API
+    #include <windows.h>    // Windows API
 #else
-#include <fcntl.h>      // O_RDWR, O_CREAT, O_TRUNC
-#include <unistd.h>     // close, ftruncate
-#include <sys/mman.h>   // mmap, munmap, PROT_*, MAP_*
+    #include <fcntl.h>      // O_RDWR, O_CREAT, O_TRUNC
+    #include <unistd.h>     // close, ftruncate
+    #include <sys/mman.h>   // mmap, munmap, PROT_*, MAP_*
 #endif
 
 #include "io_iwriter.hpp"

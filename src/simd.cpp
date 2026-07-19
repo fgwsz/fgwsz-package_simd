@@ -3,9 +3,9 @@
 
 #if defined(__x86_64__) || defined(_M_X64) || defined(__i386__) \
     || defined(_M_IX86)
-#include <immintrin.h>   // AVX/SSE (包含 _mm256_* 和 _mm_*)
+    #include <immintrin.h>   // AVX/SSE (包含 _mm256_* 和 _mm_*)
 #elif defined(__aarch64__) || defined(_M_ARM64)
-#include <arm_neon.h>    // ARM NEON
+    #include <arm_neon.h>    // ARM NEON
 #endif
 
 #include "simd.hpp"

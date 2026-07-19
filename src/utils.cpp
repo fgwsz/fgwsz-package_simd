@@ -8,10 +8,8 @@
 
 #include "utils.hpp"
 
-// ========================== 工具函数 ==========================
 namespace utils {
 
-// 仅用于小数据（路径、长度），非性能关键
 void xor_range(u8* data, size_t len, u8 key) {
     for (size_t i = 0; i < len; ++i){
         data[i] ^= key;

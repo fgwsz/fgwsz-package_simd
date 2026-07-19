@@ -3,7 +3,7 @@
 #include <string>        // std::wstring (Windows)
 
 #ifdef _WIN32
-#include <windows.h>     // HANDLE, etc.
+    #include <windows.h>     // HANDLE, etc.
 #endif
 
 #include "console.hpp"

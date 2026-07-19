@@ -3,7 +3,7 @@
 #include <string>      // std::string
 
 #ifdef _WIN32
-#include <windows.h>   // WideCharToMultiByte, CP_UTF8, etc.
+    #include <windows.h>   // WideCharToMultiByte, CP_UTF8, etc.
 #endif
 
 #include "cli.hpp"
