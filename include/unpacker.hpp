@@ -19,7 +19,8 @@ private:
 
     static void print_summary(
         const std::string& action, const std::filesystem::path& target,
-        size_t count, uint64_t content_size, double seconds
+        size_t count, uint64_t content_size, uint64_t package_size,
+        double seconds
     );
 
 };

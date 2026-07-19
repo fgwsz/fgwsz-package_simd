@@ -1,6 +1,5 @@
 // 标准库
 #include <filesystem>
-#include <fstream>
 #include <vector>
 #include <cstdint>
 #include <cstddef>
@@ -36,6 +35,7 @@ void Unpacker::run(
     std::filesystem::create_directories(out_root);
 
     auto reader = io::create_reader(package, true);
+
     if (!reader || !reader->is_open()) {
         throw PackageError("Failed to open package file");
     }
@@ -44,6 +44,9 @@ void Unpacker::run(
     uint64_t total_content_size = 0;
     size_t file_count = 0;
 
+    const size_t BUF_SIZE = constants::IO_BUFFER_SIZE;
+    std::vector<uint8_t> buf(BUF_SIZE);
+
     while (reader->tell() < reader->size()) {
         auto header = EntryHeader::deserialize(*reader);
         console::print("\r正在解包: " + header.path);
@@ -51,15 +54,14 @@ void Unpacker::run(
         std::filesystem::path target =
             out_root/ path_utils::from_utf8(header.path);
         std::filesystem::create_directories(target.parent_path());
-        std::ofstream fout(target, std::ios::binary);
-        if (!fout) {
+
+        io::FileWriter out(target);
+        if (!out.is_open()) {
             throw PackageError(
                 "Cannot create file: " + path_utils::to_utf8(target)
             );
         }
 
-        const size_t BUF_SIZE = constants::IO_BUFFER_SIZE;
-        std::vector<uint8_t> buf(BUF_SIZE);
         uint64_t remaining = header.content_len;
         while (remaining > 0) {
             size_t to_read = std::min(remaining, BUF_SIZE);
@@ -67,9 +69,14 @@ void Unpacker::run(
                 throw PackageError("Incomplete content data");
             }
             simd::xor_block(buf.data(), buf.data(), to_read, header.key);
-            fout.write(reinterpret_cast<const char*>(buf.data()), to_read);
+            if (!out.write(buf.data(), to_read)) {
+                throw PackageError(
+                    "Write to file failed: " + path_utils::to_utf8(target)
+                );
+            }
             remaining -= to_read;
         }
+        // out 析构自动关闭文件
 
         total_content_size += header.content_len;
         ++file_count;
@@ -77,19 +84,18 @@ void Unpacker::run(
 
     console::print("\n");
     print_summary(
-        "解包完成", out_root, file_count, total_content_size, timer.elapsed()
+        "解包完成", out_root, file_count,
+        total_content_size, std::filesystem::file_size(package),
+        timer.elapsed()
     );
 }
 
 void Unpacker::print_summary(
     const std::string& action, const std::filesystem::path& target,
-    size_t count, uint64_t content_size, double seconds
+    size_t count, uint64_t content_size, uint64_t package_size, double seconds
 ) {
-    uint64_t pkg_size = std::filesystem::exists(target)
-        ? std::filesystem::file_size(target)
-        : 0;
-    double ratio = pkg_size
-        ? (static_cast<double>(content_size)/pkg_size*100)
+    double ratio = package_size
+        ? (static_cast<double>(content_size)/package_size*100)
         : 0;
     console::println(action + "，输出目录: " + path_utils::to_utf8(target));
     console::println("共解包 " + std::to_string(count) + " 个文件。");
@@ -98,8 +104,8 @@ void Unpacker::print_summary(
         + " (" + std::to_string(content_size) + " 字节)"
     );
     console::println(
-        "包文件大小: " + utils::format_size(pkg_size)
-        + " (" + std::to_string(pkg_size) + " 字节)"
+        "包文件大小: " + utils::format_size(package_size)
+        + " (" + std::to_string(package_size) + " 字节)"
     );
     console::println("内容占比: " + std::to_string(ratio) + "%");
     console::println("用时: " + std::to_string(seconds) + " 秒");
