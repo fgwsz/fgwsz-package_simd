@@ -76,14 +76,16 @@ The executable `fgwsz-package_simd` (or `.exe` on Windows) will be generated.
 
 ```txt
 Usages:
-    Pack  : -c <output-package-path> <input-path-1> [<input-path-2> ...]
-    Unpack: -x <input-package-path> <output-directory-path>
-    List  : -l <input-package-path>
+    Pack  : fgwsz-package_simd -c/-C <output-package-path> <input-path-1> [<input-path-2> ...]
+    Unpack: fgwsz-package_simd -x/-X <input-package-path> <output-directory-path>
+    List  : fgwsz-package_simd -l/-L <input-package-path>
+    Help  : fgwsz-package_simd -h/-H
 
 Examples:
-    Pack a file and directory: -c 0.fgwsz README.md source
-    Unpack                   : -x 0.fgwsz output
-    List package contents    : -l 0.fgwsz
+    Pack a file and directory: fgwsz-package_simd -c 0.fgwsz README.md source
+    Unpack                   : fgwsz-package_simd -x 0.fgwsz output
+    List package contents    : fgwsz-package_simd -l 0.fgwsz
+    Help                     : fgwsz-package_simd -h
 ```
 
 ### Pack
