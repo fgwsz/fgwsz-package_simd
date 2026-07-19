@@ -86,6 +86,23 @@ bool MmapWriter::create(const std::filesystem::path& path, size_t size) {
     len_ = size;
     fd_ = fd;
     open_ = true;
+
+    // 增加 unix mmap 顺序优化
+    #ifdef __linux__
+        posix_fadvise(fd_, 0, len_, POSIX_FADV_SEQUENTIAL);
+        madvise(
+            const_cast<void*>(static_cast<const void*>(data_)),
+            len_, MADV_SEQUENTIAL
+        );
+    #elif defined(__APPLE__)
+        int enable = 1;
+        fcntl(fd_, F_RDAHEAD, &enable);
+        madvise(
+            const_cast<void*>(static_cast<const void*>(data_)),
+            len_, MADV_SEQUENTIAL
+        );
+    #endif
+
     return true;
 #endif
 }

@@ -4,12 +4,12 @@
 #include <filesystem>   // std::filesystem
 
 #ifdef _WIN32
-#include <windows.h>    // Windows API
+    #include <windows.h>    // Windows API
 #else
-#include <fcntl.h>      // O_RDONLY
-#include <unistd.h>     // close, ftruncate, etc.
-#include <sys/mman.h>   // mmap, munmap
-#include <sys/stat.h>   // fstat, struct stat
+    #include <fcntl.h>      // O_RDONLY
+    #include <unistd.h>     // close, ftruncate, etc.
+    #include <sys/mman.h>   // mmap, munmap
+    #include <sys/stat.h>   // fstat, struct stat
 #endif
 
 #include "io_ireader.hpp"
@@ -79,6 +79,23 @@ bool MmapReader::open(const std::filesystem::path& path) {
     data_ = static_cast<const uint8_t*>(ptr);
     fd_ = fd;
     open_ = true;
+
+    // 增加 unix mmap 顺序优化
+    #ifdef __linux__
+        posix_fadvise(fd_, 0, len_, POSIX_FADV_SEQUENTIAL);
+        madvise(
+            const_cast<void*>(static_cast<const void*>(data_)),
+            len_, MADV_SEQUENTIAL
+        );
+    #elif defined(__APPLE__)
+        int enable = 1;
+        fcntl(fd_, F_RDAHEAD, &enable);
+        madvise(
+            const_cast<void*>(static_cast<const void*>(data_)),
+            len_, MADV_SEQUENTIAL
+        );
+    #endif
+
     return true;
 #endif
 }
