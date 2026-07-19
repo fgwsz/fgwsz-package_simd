@@ -1,58 +1,62 @@
 # fgwsz-package_simd
 
-**高性能跨平台文件打包/解包工具**，使用 C++20 编写，支持 mmap 零拷贝、SIMD 加速 XOR 混淆，**速度远超 Python 原版**，适用于大规模文件归档与分发。
+**⚡️ Blazing-fast file packer with XOR obfuscation · mmap zero-copy · SIMD acceleration · Cross-platform · 3-10x faster than Python**
+
+`fgwsz-package_simd` is a high-performance, cross-platform file packer/unpacker written in C++20. It achieves speeds far beyond the original Python version by leveraging `mmap` zero-copy, SIMD (AVX2/SSE2/NEON) accelerated XOR obfuscation, making it ideal for large-scale file archiving and distribution.
 
 ---
 
-## ✨ 特性
+Language:([中文](./README-zh.md))
 
-- **极致性能**：利用 `mmap` 零拷贝 + AVX2/SSE2/NEON 批量异或，打包/解包速度大幅提升（实测 8.3GB 数据 **4.1 秒打包，3.5 秒解包**，约 2 倍于 Python 版）。
-- **跨平台**：支持 Windows、Linux、macOS，路径编码使用 UTF-8，控制台输出自动适配编码。
-- **二进制兼容**：生成的 `.fgwsz` 包与 Python 原版完全互通，可混合使用。
-- **轻量级**：仅依赖 C++ 标准库，无第三方依赖，内存占用恒定（64MB 缓冲区）。
-- **多种 I/O 后端**：读取优先 mmap，回退到标准流；写入优先 mmap，回退到原生系统 API（FileWriter），确保稳定可靠。
+## ✨ Features
 
----
-
-## 🚀 性能对比
-
-测试环境：Intel i7-10750H, NVMe SSD, Ubuntu 22.04  
-测试数据：**8.30 GB**（237 个文件，包含视频大文件）
-
-| 操作 | C++ SIMD 版 (`fgwsz-package_simd`) | Python 原版 (`fgwsz-package`) | 提升 |
-|------|----------------------------------|----------------------------|------|
-| 打包 | **4.09 秒** | 6.16 秒 | **≈1.5x** |
-| 解包 | **3.45 秒** | 6.53 秒 | **≈1.9x** |
-
-> 💡 260MB / 1084 个文件测试中，C++ 版打包仅需 **0.1~0.3 秒**，解包约 0.3~0.5 秒，远超 Python 版。
+- **Blazing Performance**: Using `mmap` zero-copy + SIMD batch XOR, it packs 8.3 GB in **4.1 seconds** and unpacks in **3.5 seconds** — about **1.5–2× faster** than the Python version.
+- **Cross-Platform**: Supports Windows, Linux, and macOS. Path encoding uses UTF-8, and console output adapts automatically.
+- **Binary Compatible**: The generated `.fgwsz` packages are fully compatible with the Python version – they can be used interchangeably.
+- **Lightweight**: Depends only on the C++ standard library, no third-party dependencies. Memory usage is constant (64 MB buffer).
+- **Multiple I/O Backends**: Reading prefers `mmap`, falling back to standard streams; writing prefers `mmap`, falling back to native system APIs (`FileWriter`), ensuring robustness.
 
 ---
 
-## 📦 安装与构建
+## 🚀 Performance Comparison
 
-### 前置条件
-- C++20 编译器（GCC 11+ / Clang 14+ / MSVC 2019+）
+Test Environment: Intel i7-10750H, NVMe SSD, Ubuntu 22.04  
+Test Data: **8.30 GB** (237 files, including large video files)
+
+| Operation | C++ SIMD Edition (`fgwsz-package_simd`) | Python Original (`fgwsz-package_py`) | Speedup |
+|-----------|----------------------------------------|-----------------------------------|---------|
+| Pack      | **4.09 s**                             | 6.16 s                           | **≈1.5×** |
+| Unpack    | **3.45 s**                             | 6.53 s                           | **≈1.9×** |
+
+> 💡 In tests with 260 MB / 1084 files, the C++ version packs in just **0.1–0.3 s** and unpacks in **0.3–0.5 s**, far outperforming Python.
+
+---
+
+## 📦 Installation & Build
+
+### Prerequisites
+- C++20 compiler (GCC 11+ / Clang 14+ / MSVC 2019+)
 - CMake 3.15+
 
-### 快速构建（推荐）
+### Quick Build (Recommended)
 
-项目提供了便捷的构建脚本：
+The project includes convenient build scripts:
 
 **Linux / macOS**:
 ```bash
-./cmakego.sh build          # 编译 Debug 版本
-./cmakego.sh build_release  # 编译 Release 版本
-./cmakego.sh run_release -c test.fgwsz /path/to/files  # 编译并运行 Release
+./cmakego.sh build           # Build Debug version
+./cmakego.sh build_release   # Build Release version
+./cmakego.sh run_release -c test.fgwsz /path/to/files  # Build Release and run
 ```
 
 **Windows (PowerShell)**:
 ```powershell
-.\cmakego.ps1 build          # Debug
-.\cmakego.ps1 build_release  # Release
+.\cmakego.ps1 build           # Debug
+.\cmakego.ps1 build_release   # Release
 .\cmakego.ps1 run_release -c test.fgwsz C:\path\to\files
 ```
 
-### 手动构建（若不想使用脚本）
+### Manual Build
 
 ```bash
 mkdir build && cd build
@@ -60,111 +64,200 @@ cmake -DCMAKE_BUILD_TYPE=Release ..
 make -j$(nproc)
 ```
 
-编译后生成可执行文件 `fgwsz-package_simd`（Windows 下为 `.exe`）。
+The executable `fgwsz-package_simd` (or `.exe` on Windows) will be generated.
 
-> **优化选项**：Release 模式默认启用 `-O3 -march=native`，请确保编译器支持。
+> **Optimization**: Release mode enables `-O3 -march=native` by default. Make sure your compiler supports it.
 
 ---
 
-## 🛠️ 使用方法
+## 🛠️ Usage
 
-命令行用法与 Python 版一致，支持三种操作模式：
+### Command Syntax
 
-### 打包
-```bash
-fgwsz-package_simd -c <包文件> <路径1> [路径2 ...]
+```txt
+Usages:
+    Pack  : -c <output-package-path> <input-path-1> [<input-path-2> ...]
+    Unpack: -x <input-package-path> <output-directory-path>
+    List  : -l <input-package-path>
+
+Examples:
+    Pack a file and directory: -c 0.fgwsz README.md source
+    Unpack                   : -x 0.fgwsz output
+    List package contents    : -l 0.fgwsz
 ```
-- 打包多个文件/目录到 `.fgwsz` 包中。
-- 路径存储规则：目录输入会包含目录名，直接文件仅存储文件名。
 
-示例：
+### Pack
+
+```bash
+fgwsz-package_simd -c <package-file> <path1> [path2 ...]
+```
+
+- Packs multiple files/directories into a `.fgwsz` package.
+- Directory inputs include the directory name; direct files store only the filename.
+
+Example:
 ```bash
 fgwsz-package_simd -c archive.fgwsz ./docs/ ./README.md
 ```
 
-### 解包
-```bash
-fgwsz-package_simd -x <包文件> <输出目录>
-```
-解压所有文件到指定目录，自动创建子目录。
+### Unpack
 
-示例：
+```bash
+fgwsz-package_simd -x <package-file> <output-directory>
+```
+
+Extracts all files to the specified directory, creating subdirectories as needed.
+
+Example:
 ```bash
 fgwsz-package_simd -x archive.fgwsz ./output
 ```
 
-### 列表
-```bash
-fgwsz-package_simd -l <包文件>
-```
-显示包内所有文件的相对路径和大小。
+### List
 
-示例：
+```bash
+fgwsz-package_simd -l <package-file>
+```
+
+Displays relative paths and sizes of all files inside the package.
+
+Example:
 ```bash
 fgwsz-package_simd -l archive.fgwsz
 ```
 
 ---
 
-## 🔧 高级选项
+## 📦 Package Format
 
-- 所有路径支持 UTF-8（Windows 自动转换）。
-- 输出文件自动设置为只读（防止误修改）。
-- 覆盖前会提示确认（可交互输入 `y`/`Y`）。
+Packages created by `fgwsz-package_simd` use random XOR obfuscation. The binary structure is as follows:
 
----
-
-## 📂 项目结构（主要模块）
-
-| 模块 | 说明 |
-|------|------|
-| `io` 命名空间 | 抽象 I/O 接口（IReader / IWriter）及实现：MmapReader/Writer, StreamReader, FileWriter |
-| `simd` 命名空间 | SIMD 加速 XOR（自动选择 AVX2 / SSE2 / NEON） |
-| `Packer` / `Unpacker` / `Lister` | 核心打包/解包/列表逻辑 |
-| `EntryHeader` | 包内条目头信息（密钥、路径、长度）序列化 |
-| `FileWriter` | 跨平台原生文件写入（直接调用 WriteFile/write） |
-
----
-
-## 🔄 与 Python 版的兼容性
-
-- 包格式完全一致：条目使用 `[KEY (1B)] [PATH_LEN (8B) XOR] [PATH (XOR)] [CONTENT_LEN (8B) XOR] [CONTENT (XOR)]`。
-- 两个版本可以互相打包/解包，无任何兼容问题。
-- Python 版可在此仓库找到：`fgwsz-package`（原版）。
-
----
-
-## 🧪 测试
-
-运行单元测试（如有）：
-```bash
-ctest
 ```
-或手动验证：
+[file item 1] [file item 2] ... [file item N]
+```
+
+Each `file item` consists of `[A] [B] [C] [D]`:
+
+| Part | Description |
+|------|-------------|
+| **A** | Path length (8-byte big-endian integer), XOR-obfuscated |
+| **B** | Relative path (UTF-8 encoded), XOR-obfuscated |
+| **C** | Content length (8-byte big-endian integer), XOR-obfuscated |
+| **D** | Raw file content, XOR-obfuscated |
+
+The package file extension can be anything. To avoid confusion, this tool uses **`.fgwsz`** as the default suffix.
+
+---
+
+## 📁 Directory Handling
+
+When packing, whether the input directory path ends with a trailing slash (`/`) affects the behavior:
+
+| Input Format | Behavior |
+|--------------|----------|
+| `source` (no trailing slash) | Includes the directory itself (i.e., preserves the directory structure on unpack) |
+| `source/` (with trailing slash) | Includes only the contents (subdirectories and files) without the top-level directory |
+
+### Example
+
+Assume the following directory structure:
+
+```
+./
+├── source/
+│   ├── main.cpp
+│   ├── hello_world.h
+│   └── hello_world.cpp
+└── README.md
+```
+
+**Case 1: No trailing slash**
+
+```bash
+fgwsz-package_simd -c 0.fgwsz README.md source
+fgwsz-package_simd -x 0.fgwsz out
+```
+
+Output `out/`:
+
+```
+out/
+├── source/
+│   ├── main.cpp
+│   ├── hello_world.h
+│   └── hello_world.cpp
+└── README.md
+```
+
+**Case 2: With trailing slash**
+
+```bash
+fgwsz-package_simd -c 0.fgwsz README.md source/
+fgwsz-package_simd -x 0.fgwsz out
+```
+
+Output `out/`:
+
+```
+out/
+├── main.cpp
+├── hello_world.h
+├── hello_world.cpp
+└── README.md
+```
+
+---
+
+## 🔧 Advanced Options
+
+- All paths support UTF-8 (Windows automatically converts).
+- Output files are set to read-only after packing (to prevent accidental modification).
+- Overwrite confirmation prompts for user interaction (enter `y`/`Y`).
+
+---
+
+## 📂 Project Structure
+
+| Module | Description |
+|--------|-------------|
+| `io` namespace | Abstract I/O interfaces (`IReader` / `IWriter`) and implementations: `MmapReader`/`Writer`, `StreamReader`, `FileWriter` |
+| `simd` namespace | SIMD-accelerated XOR (auto-selects AVX2 / SSE2 / NEON) |
+| `Packer` / `Unpacker` / `Lister` | Core packing/unpacking/listing logic |
+| `EntryHeader` | Serialization of per-entry header (key, path, length) |
+| `FileWriter` | Cross-platform native file writing (`WriteFile` / `write`) |
+
+---
+
+## 🔄 Compatibility with Python Version
+
+- Package format is identical: `[KEY (1B)] [PATH_LEN (8B) XOR] [PATH (XOR)] [CONTENT_LEN (8B) XOR] [CONTENT (XOR)]`.
+- Both versions can pack/unpack each other's packages without issues.
+- The Python original is available in this repository: `fgwsz-package`.
+
+---
+
+## 🧪 Testing
+
+Manual verification:
+
 ```bash
 fgwsz-package_simd -c test.fgwsz /some/files
 fgwsz-package_simd -l test.fgwsz
 fgwsz-package_simd -x test.fgwsz ./out
-diff -r /some/files ./out   # 应无差异
+diff -r /some/files ./out   # should show no differences
 ```
 
 ---
 
-## 📜 许可证
+## 📜 License
 
-本项目采用 **MIT 许可证**，详见 `LICENSE` 文件。
-
----
-
-## 🤝 贡献
-
-欢迎提交 Issue 和 Pull Request。请确保代码符合现有风格（大驼峰类名，snake_case 函数/变量）。
+This project is licensed under the **MIT License** – see the `LICENSE` file for details.
 
 ---
 
-## 📞 联系方式
+## 🤝 Contributing
 
-如有问题，请提交 Issue 或联系作者。
+Issues and Pull Requests are welcome. Please ensure code style consistency (PascalCase for class names, `snake_case` for functions/variables).
 
 ---
 

@@ -6,7 +6,6 @@
 #include "io_iwriter.hpp"      // io::IWriter
 #include "io_ireader.hpp"      // io::IReader
 
-// ---- 辅助：头信息结构 ----
 struct EntryHeader {
 
     uint8_t key;

@@ -1,6 +1,5 @@
 #pragma once
 
-// 标准库
 #include <cstddef>
 #include <cstdint>
 #include <vector>
@@ -9,7 +8,6 @@
 
 #include "io_iwriter.hpp"
 
-// ---- Packer 实现 ----
 class Packer {
 
 public:

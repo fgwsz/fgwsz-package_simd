@@ -1,6 +1,7 @@
 #include <cstring>
 #include <string>
 #include <filesystem>
+#include <format>
 
 #ifdef _WIN32
     #include <windows.h>
@@ -129,7 +130,9 @@ void FileWriter::open_file(const std::filesystem::path& path) {
         nullptr
     );
     if (h == INVALID_HANDLE_VALUE) {
-        throw PackageError("Cannot create file: " + path.string());
+        throw PackageError(
+            std::format("Cannot create file: {}", path.string())
+        );
     }
     handle_ = static_cast<native_handle>(h);
     open_ = true;
@@ -137,8 +140,11 @@ void FileWriter::open_file(const std::filesystem::path& path) {
     int fd = ::open(path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (fd == -1) {
         throw PackageError(
-            std::string("Cannot create file: ") + path.string()
-            + ": " + strerror(errno)
+            std::format(
+                "Cannot create file: {}: {}",
+                path.string(),
+                strerror(errno)
+            )
         );
     }
     handle_ = fd;

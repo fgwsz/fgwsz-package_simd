@@ -6,6 +6,7 @@
     #include <windows.h>   // WideCharToMultiByte, CP_UTF8, etc.
 #endif
 
+#include "console.hpp"
 #include "cli.hpp"
 
 // 确保 64 位文件大小支持
@@ -15,6 +16,7 @@ static_assert(
 
 #ifdef _WIN32
 int wmain(int argc, wchar_t* argv[]) {
+    console::init();
     std::vector<std::string> args;
     for (int i = 0; i < argc; ++i) {
         int len = WideCharToMultiByte(
@@ -32,6 +34,7 @@ int wmain(int argc, wchar_t* argv[]) {
 }
 #else
 int main(int argc, char* argv[]) {
+    console::init();
     std::vector<std::string> args(argv, argv+argc);
     return cli::execute(args);
 }

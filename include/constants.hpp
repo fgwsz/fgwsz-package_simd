@@ -3,7 +3,6 @@
 #include <cstddef>
 #include <cstdint>
 
-// ========================== 常量 ==========================
 namespace constants {
 
 constexpr uint64_t LENGTH_FIELD_SIZE = 8;

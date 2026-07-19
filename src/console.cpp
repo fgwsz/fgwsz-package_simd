@@ -59,11 +59,23 @@ void print_err(std::string_view s) {
 #endif
 
 void println(std::string_view s) {
-    print(s); print("\n");
+    print(s);
+    print("\n");
 }
 
 void println_err(std::string_view s) {
-    print_err(s); print_err("\n");
+    print_err(s);
+    print_err("\n");
+}
+
+void flush() {
+    std::cout.flush();
+}
+
+void init() {
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(nullptr);
+    std::cout.tie(nullptr);
 }
 
 } // namespace console

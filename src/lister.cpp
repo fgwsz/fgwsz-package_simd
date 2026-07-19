@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <string>
 #include <cstdint>
+#include <format>
 
 // 自定义模块
 #include "package_error.hpp"
@@ -20,7 +21,10 @@ void Lister::run(const std::filesystem::path& package) {
         || !std::filesystem::is_regular_file(package)
     ) {
         throw PackageError(
-            "Package file does not exist: " + path_utils::to_utf8(package)
+            std::format(
+                "Package file does not exist: {}",
+                path_utils::to_utf8(package)
+            )
         );
     }
 
@@ -36,15 +40,14 @@ void Lister::run(const std::filesystem::path& package) {
     while (reader->tell() < reader->size()) {
         auto header = EntryHeader::deserialize(*reader);
         console::println(
-            header.path
-            + "  (" + std::to_string(header.content_len) + " bytes)"
+            std::format("{} ({} bytes)", header.path, header.content_len)
         );
         file_count++;
         total_size += header.content_len;
         reader->seek(reader->tell() + header.content_len);
     }
 
-    print_summary("列表", package, file_count, total_size, timer.elapsed());
+    print_summary("List", package, file_count, total_size, timer.elapsed());
 }
 
 void Lister::print_summary(
@@ -57,15 +60,20 @@ void Lister::print_summary(
     double ratio = pkg_size
         ? (static_cast<double>(total_size)/pkg_size*100)
         : 0;
-    console::println("\n总计: " + std::to_string(count) + " 个文件");
     console::println(
-        "内容总大小: " + utils::format_size(total_size)
-        + " (" + std::to_string(total_size) + " 字节)"
+        std::format(
+            "\n{} completed, target: {}\n"
+            "Total: {} files\n"
+            "Content: {} ({} bytes)\n"
+            "Package: {} ({} bytes)\n"
+            "Ratio: {} %\n"
+            "Time: {} s",
+            action, path_utils::to_utf8(target),
+            count,
+            utils::format_size(total_size), total_size,
+            utils::format_size(pkg_size), pkg_size,
+            ratio,
+            seconds
+        )
     );
-    console::println(
-        "包文件大小: " + utils::format_size(pkg_size)
-        + " (" + std::to_string(pkg_size) + " 字节)"
-    );
-    console::println("内容占比: " + std::to_string(ratio) + "%");
-    console::println("用时: " + std::to_string(seconds) + " 秒");
 }

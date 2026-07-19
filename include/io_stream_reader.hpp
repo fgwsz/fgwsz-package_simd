@@ -10,7 +10,6 @@
 
 namespace io {
 
-// ----- StreamReader -----
 class StreamReader final : public IReader {
 
     std::ifstream fin_;

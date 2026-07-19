@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <algorithm>
 #include <string>
+#include <format>
 
 // 自定义模块
 #include "package_error.hpp"
@@ -27,7 +28,10 @@ void Unpacker::run(
         || !std::filesystem::is_regular_file(package)
     ) {
         throw PackageError(
-            "Package file does not exist: " + path_utils::to_utf8(package)
+            std::format(
+                "Package file does not exist: {}",
+                path_utils::to_utf8(package)
+            )
         );
     }
 
@@ -49,7 +53,7 @@ void Unpacker::run(
 
     while (reader->tell() < reader->size()) {
         auto header = EntryHeader::deserialize(*reader);
-        console::print("\r正在解包: " + header.path);
+        console::print(std::format("\rUnpacking: {}", header.path));
 
         std::filesystem::path target =
             out_root/ path_utils::from_utf8(header.path);
@@ -58,7 +62,9 @@ void Unpacker::run(
         auto writer = io::create_writer(target, header.content_len, true);
         if (!writer) {
             throw PackageError(
-                "Cannot create file: " + path_utils::to_utf8(target)
+                std::format(
+                    "Cannot create file: {}", path_utils::to_utf8(target)
+                )
             );
         }
 
@@ -72,7 +78,10 @@ void Unpacker::run(
             simd::xor_block(buf.data(), buf.data(), to_read, header.key);
             if (!writer->write(buf.data(), to_read)) {
                 throw PackageError(
-                    "Write to file failed: " + path_utils::to_utf8(target)
+                    std::format(
+                        "Write to file failed: {}",
+                        path_utils::to_utf8(target)
+                    )
                 );
             }
             remaining -= to_read;
@@ -85,7 +94,7 @@ void Unpacker::run(
 
     console::print("\n");
     print_summary(
-        "解包完成", out_root, file_count,
+        "Unpack", out_root, file_count,
         total_content_size, std::filesystem::file_size(package),
         timer.elapsed()
     );
@@ -98,16 +107,21 @@ void Unpacker::print_summary(
     double ratio = package_size
         ? (static_cast<double>(content_size)/package_size*100)
         : 0;
-    console::println(action + "，输出目录: " + path_utils::to_utf8(target));
-    console::println("共解包 " + std::to_string(count) + " 个文件。");
+
     console::println(
-        "内容总大小: " + utils::format_size(content_size)
-        + " (" + std::to_string(content_size) + " 字节)"
+        std::format(
+            "\n{} completed, target: {}\n"
+            "Total: {} files\n"
+            "Content: {} ({} bytes)\n"
+            "Package: {} ({} bytes)\n"
+            "Ratio: {} %\n"
+            "Time: {} s",
+            action, path_utils::to_utf8(target),
+            count,
+            utils::format_size(content_size), content_size,
+            utils::format_size(package_size), package_size,
+            ratio,
+            seconds
+        )
     );
-    console::println(
-        "包文件大小: " + utils::format_size(package_size)
-        + " (" + std::to_string(package_size) + " 字节)"
-    );
-    console::println("内容占比: " + std::to_string(ratio) + "%");
-    console::println("用时: " + std::to_string(seconds) + " 秒");
 }

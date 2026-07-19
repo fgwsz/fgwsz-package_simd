@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 
-// ========================== 命令行接口 ==========================
 namespace cli {
 
 void print_usage(const std::string& prog);

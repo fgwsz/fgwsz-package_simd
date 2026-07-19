@@ -12,7 +12,6 @@
 
 namespace io {
 
-// ----- MmapWriter -----
 class MmapWriter final : public IWriter {
     uint8_t* data_ = nullptr;
     size_t len_ = 0, pos_ = 0;

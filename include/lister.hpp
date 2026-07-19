@@ -5,7 +5,6 @@
 #include <string>
 #include <cstdint>
 
-// ---- Lister 实现 ----
 class Lister {
 
 public:

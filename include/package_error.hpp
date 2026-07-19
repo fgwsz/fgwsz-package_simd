@@ -2,14 +2,15 @@
 
 #include <stdexcept>
 #include <string>
+#include <source_location>
 
-// ========================== 异常类型 ==========================
 class PackageError : public std::runtime_error {
 
 public:
 
-    explicit PackageError(const std::string& msg)
-        : std::runtime_error(msg)
-    {}
+    PackageError(
+        const std::string& msg,
+        std::source_location const location=std::source_location::current()
+    );
 
 };

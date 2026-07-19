@@ -10,6 +10,7 @@
 #include <cstddef>
 #include <iostream>
 #include <memory>
+#include <format>
 
 // 自定义模块
 #include "constants.hpp"
@@ -69,8 +70,10 @@ void Packer::run(
     for (size_t idx = 0; idx < items.size(); ++idx) {
         const auto& item = items[idx];
         console::print(
-            "\r[" + std::to_string(idx+1) + "/" + std::to_string(items.size())
-            + "] 正在打包: " + item.rel_path
+            std::format(
+                "\r[{}/{}] Packing: {}",
+                idx + 1, items.size(), item.rel_path
+            )
         );
         std::flush(std::cout);
 
@@ -87,7 +90,7 @@ void Packer::run(
     writer.reset();
     console::print("\n");
     print_summary(
-        "打包完成", out_abs, items.size(), total_content_size, timer.elapsed()
+        "Pack",out_abs, items.size(), total_content_size, timer.elapsed()
     );
     set_readonly(out_abs);
 }
@@ -98,7 +101,9 @@ void Packer::write_content(
     auto reader = io::create_reader(file, true);
     if (!reader) {
         throw PackageError(
-            "Cannot open input file: " + path_utils::to_utf8(file)
+            std::format(
+                "Cannot open input file: {}", path_utils::to_utf8(file)
+            )
         );
     }
 
@@ -146,14 +151,18 @@ std::vector<Packer::Item> Packer::collect_items(
         auto abs_p = std::filesystem::absolute(p);
         if (!std::filesystem::exists(abs_p)) {
             throw PackageError(
-                "Path does not exist: " + path_utils::to_utf8(abs_p)
+                std::format(
+                    "Path does not exist: {}", path_utils::to_utf8(abs_p)
+                )
             );
         }
         if (
             std::find(abs_inputs.begin(), abs_inputs.end(), abs_p)
             != abs_inputs.end()
         ) {
-            throw PackageError("Duplicate input: " + path_utils::to_utf8(p));
+            throw PackageError(
+                std::format("Duplicate input: {}", path_utils::to_utf8(p))
+            );
         }
         abs_inputs.push_back(abs_p);
     }
@@ -161,7 +170,11 @@ std::vector<Packer::Item> Packer::collect_items(
     std::vector<std::filesystem::path> files, dirs;
     for (const auto& p : abs_inputs) {
         if (std::filesystem::is_symlink(p)) {
-            console::println("跳过符号链接: " + path_utils::to_utf8(p));
+            console::println(
+                std::format(
+                    "Symbolic link skipped: {}", path_utils::to_utf8(p)
+                )
+            );
             continue;
         }
         if (std::filesystem::is_regular_file(p)) {
@@ -170,7 +183,7 @@ std::vector<Packer::Item> Packer::collect_items(
             dirs.push_back(p);
         } else {
             throw PackageError(
-                "Unknown file type: " + path_utils::to_utf8(p)
+                std::format("Unknown file type: {}", path_utils::to_utf8(p))
             );
         }
     }
@@ -220,11 +233,15 @@ std::vector<Packer::Item> Packer::collect_items(
 }
 
 bool Packer::confirm_overwrite(const std::filesystem::path& file) {
-    console::println(
-        "警告: 输出文件 '" + path_utils::to_utf8(file)
-        + "' 已存在，将被覆盖。"
+    console::print(
+        std::format(
+            "Warning: Output file '{}' already exists and will be"
+                " overwritten.\n"
+            "Continue? (y/N): ",
+            path_utils::to_utf8(file)
+        )
     );
-    console::print("是否继续? (y/N): ");
+    console::flush(); // 确保打印信息立刻回显,先显示提示信息后输入
     std::string line;
     std::getline(std::cin, line);
     return line == "y" || line == "Y";
@@ -240,18 +257,23 @@ void Packer::print_summary(
     double ratio = pkg_size
         ? (static_cast<double>(content_size)/pkg_size*100)
         : 0;
-    console::println(action + "，目标: " + path_utils::to_utf8(target));
-    console::println("共处理 " + std::to_string(count) + " 个文件。");
+
     console::println(
-        "内容总大小: " + utils::format_size(content_size)
-        + " (" + std::to_string(content_size) + " 字节)"
+        std::format(
+            "\n{} completed, target: {}\n"
+            "Total: {} files\n"
+            "Content: {} ({} bytes)\n"
+            "Package: {} ({} bytes)\n"
+            "Ratio: {} %\n"
+            "Time: {} s",
+            action, path_utils::to_utf8(target),
+            count,
+            utils::format_size(content_size), content_size,
+            utils::format_size(pkg_size), pkg_size,
+            ratio,
+            seconds
+        )
     );
-    console::println(
-        "包文件大小: " + utils::format_size(pkg_size)
-        + " (" + std::to_string(pkg_size) + " 字节)"
-    );
-    console::println("内容占比: " + std::to_string(ratio) + "%");
-    console::println("用时: " + std::to_string(seconds) + " 秒");
 }
 
 void Packer::set_readonly(const std::filesystem::path& p) {

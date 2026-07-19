@@ -12,7 +12,6 @@
 
 namespace io {
 
-// ----- MmapReader -----
 class MmapReader final : public IReader {
     const uint8_t* data_ = nullptr;
     size_t len_ = 0, pos_ = 0;

@@ -5,7 +5,6 @@
 
 namespace io {
 
-// ----- 抽象接口 -----
 class IWriter {
 public:
     virtual ~IWriter() = default;

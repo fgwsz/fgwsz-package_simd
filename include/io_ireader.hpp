@@ -5,7 +5,6 @@
 
 namespace io {
 
-// ----- 抽象接口 -----
 class IReader {
 public:
     virtual ~IReader() = default;
@@ -14,7 +13,7 @@ public:
     virtual size_t tell() const = 0;
     virtual size_t size() const = 0;
     virtual bool is_open() const = 0;
-    virtual bool is_mmap() const { return false; }  // 用于零拷贝检测
+    virtual bool is_mmap() const { return false; }
 };
 
 } // namespace io
