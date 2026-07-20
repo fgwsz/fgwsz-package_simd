@@ -21,6 +21,7 @@
 #include "console.hpp"
 #include "path_utils.hpp"
 #include "entry_header.hpp"
+#include "summary.hpp"
 
 #include "packer.hpp"
 
@@ -32,8 +33,19 @@ void Packer::run(
     if (std::filesystem::exists(out_abs) && !confirm_overwrite(out_abs)) {
         throw PackageError("User cancelled");
     }
+
     if (std::filesystem::exists(out_abs)) {
-        std::filesystem::remove(out_abs);  // 删除旧文件，避免锁定
+        try {
+            // 为所有者、组、其他用户添加写权限
+            std::filesystem::permissions(out_abs,
+                std::filesystem::perms::owner_write |
+                std::filesystem::perms::group_write |
+                std::filesystem::perms::others_write,
+                std::filesystem::perm_options::add);
+        } catch (const std::filesystem::filesystem_error&) {
+            // 如果权限修改失败，则回退到删除
+            std::filesystem::remove(out_abs);
+        }
     }
 
     auto items = collect_items(inputs, out_abs);
@@ -89,9 +101,15 @@ void Packer::run(
 
     writer.reset();
     console::print("\n");
-    print_summary(
-        "Pack",out_abs, items.size(), total_content_size, timer.elapsed()
+
+    uint64_t pkg_size = std::filesystem::exists(out_abs)
+        ? std::filesystem::file_size(out_abs)
+        : 0;
+    summary::print_summary(
+        "Pack", out_abs, items.size(),
+        total_content_size, pkg_size, timer.elapsed()
     );
+
     set_readonly(out_abs);
 }
 
@@ -245,35 +263,6 @@ bool Packer::confirm_overwrite(const std::filesystem::path& file) {
     std::string line;
     std::getline(std::cin, line);
     return line == "y" || line == "Y";
-}
-
-void Packer::print_summary(
-    const std::string& action, const std::filesystem::path& target,
-    size_t count, uint64_t content_size, double seconds
-) {
-    uint64_t pkg_size = std::filesystem::exists(target)
-        ? std::filesystem::file_size(target)
-        : 0;
-    double ratio = pkg_size
-        ? (static_cast<double>(content_size)/pkg_size*100)
-        : 0;
-
-    console::println(
-        std::format(
-            "\n{} completed, target: {}\n"
-            "Total: {} files\n"
-            "Content: {} ({} bytes)\n"
-            "Package: {} ({} bytes)\n"
-            "Ratio: {} %\n"
-            "Time: {} s",
-            action, path_utils::to_utf8(target),
-            count,
-            utils::format_size(content_size), content_size,
-            utils::format_size(pkg_size), pkg_size,
-            ratio,
-            seconds
-        )
-    );
 }
 
 void Packer::set_readonly(const std::filesystem::path& p) {

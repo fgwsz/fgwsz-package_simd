@@ -38,11 +38,6 @@ private:
 
     static bool confirm_overwrite(const std::filesystem::path& file);
 
-    static void print_summary(
-        const std::string& action, const std::filesystem::path& target,
-        size_t count, uint64_t content_size, double seconds
-    );
-
     static void set_readonly(const std::filesystem::path& p);
 
 };

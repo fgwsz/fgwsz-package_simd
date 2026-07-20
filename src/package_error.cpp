@@ -8,11 +8,11 @@ PackageError::PackageError(
     std::string_view message, std::source_location const location
 ):what_str_(
     std::format(
-        "file: {}({}:{}): {}"
-        ,location.file_name()
-        ,location.line()
-        ,location.column()
-        ,message
+        "file: {}({}:{}): {}",
+        location.file_name(),
+        location.line(),
+        location.column(),
+        message
     )
 ){}
 

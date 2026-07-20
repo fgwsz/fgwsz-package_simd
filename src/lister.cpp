@@ -12,6 +12,7 @@
 #include "utils.hpp"
 #include "entry_header.hpp"
 #include "console.hpp"
+#include "summary.hpp"
 
 #include "lister.hpp"
 
@@ -47,33 +48,10 @@ void Lister::run(const std::filesystem::path& package) {
         reader->seek(reader->tell() + header.content_len);
     }
 
-    print_summary("List", package, file_count, total_size, timer.elapsed());
-}
-
-void Lister::print_summary(
-    const std::string& action, const std::filesystem::path& target,
-    size_t count, uint64_t total_size, double seconds
-) {
-    uint64_t pkg_size = std::filesystem::exists(target)
-        ? std::filesystem::file_size(target)
+    uint64_t pkg_size = std::filesystem::exists(package)
+        ? std::filesystem::file_size(package)
         : 0;
-    double ratio = pkg_size
-        ? (static_cast<double>(total_size)/pkg_size*100)
-        : 0;
-    console::println(
-        std::format(
-            "\n{} completed, target: {}\n"
-            "Total: {} files\n"
-            "Content: {} ({} bytes)\n"
-            "Package: {} ({} bytes)\n"
-            "Ratio: {} %\n"
-            "Time: {} s",
-            action, path_utils::to_utf8(target),
-            count,
-            utils::format_size(total_size), total_size,
-            utils::format_size(pkg_size), pkg_size,
-            ratio,
-            seconds
-        )
+    summary::print_summary(
+        "List", package, file_count, total_size, pkg_size, timer.elapsed()
     );
 }
