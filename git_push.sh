@@ -10,6 +10,7 @@ if [ "$commit_message" != "q" ]; then
     git add ./CMakeLists.txt
     git add ./LICENSE
     git add ./README*.md
+    git add ./benchmarks.md
     git add ./.gitignore
     git add ./*.ps1
     git add ./*.sh
