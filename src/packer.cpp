@@ -67,13 +67,13 @@ void Packer::run(
     std::mt19937 gen(rd());
     std::uniform_int_distribution<int> dis(1, 255);
 
+    std::string const items_size_str = std::to_string(items.size());
     for (size_t idx = 0; idx < items.size(); ++idx) {
         const auto& item = items[idx];
+        // 规避 std::format 多次解析 items.size() 带来的IO开销
         console::print(
-            std::format(
-                "\r[{}/{}] Packing: {}",
-                idx + 1, items.size(), item.rel_path
-            )
+            "\r[" + std::to_string(idx + 1) + "/" + items_size_str
+            + "] Packing: " + item.rel_path
         );
         std::flush(std::cout);
 
