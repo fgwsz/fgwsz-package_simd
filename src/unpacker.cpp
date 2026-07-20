@@ -53,7 +53,7 @@ void Unpacker::run(
 
     while (reader->tell() < reader->size()) {
         auto header = EntryHeader::deserialize(*reader);
-        console::print(std::format("\rUnpacking: {}", header.path));
+        console::print("\rUnpacking: " + header.path); // 比std::format更快
 
         std::filesystem::path target =
             out_root/ path_utils::from_utf8(header.path);
